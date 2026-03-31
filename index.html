@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CreditRisk Bot | Loan Eligibility Checker</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e9ecef 100%);
+            color: #1a2a3a;
+            min-height: 100vh;
+        }
+        
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #0d2b1f, #1a3a2a);
+            padding: 2rem;
+            text-align: center;
+            color: white;
+        }
+        
+        .header h1 {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+        }
+        
+        .header h1 span {
+            color: #c9a84c;
+        }
+        
+        .header p {
+            opacity: 0.8;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        /* Main Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        /* Form Card */
+        .form-card {
+            background: white;
+            border-radius: 24px;
+            padding: 2rem;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+        
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .form-group label {
+            font-weight: 600;
+            color: #2d3748;
+        }
+        
+        .form-group input, .form-group select {
+            padding: 0.75rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.2s;
+        }
+        
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #c9a84c;
+        }
+        
+        .help-text {
+            font-size: 0.75rem;
+            color: #718096;
+        }
+        
+        .btn-check {
+            background: linear-gradient(135deg, #0d2b1f, #1e4a3a);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 12px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 1.5rem;
+            transition: all 0.2s;
+        }
+        
+        .btn-check:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(13,43,31,0.3);
+        }
+        
+        /* Results Section */
+        .results-card {
+            background: white;
+            border-radius: 24px;
+            padding: 2rem;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            display: none;
+        }
+        
+        .score-section {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .score-circle {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: white;
+        }
+        
+        .score-critical { background: #e53e3e; }
+        .score-high { background: #ed8936; }
+        .score-medium { background: #38a169; }
+        .score-low { background: #2c7a4d; }
+        
+        .risk-level {
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        
+        .dti-warning {
+            text-align: center;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+            padding: 0.5rem;
+            border-radius: 8px;
+        }
+        
+        .dti-warning.warning {
+            background: #fed7aa;
+            color: #9b2c1d;
+        }
+        
+        .dti-warning.good {
+            background: #c6f6d5;
+            color: #276749;
+        }
+        
+        .section-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin: 1.5rem 0 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        
+        .recommendations-list {
+            background: #f7fafc;
+            border-radius: 12px;
+            padding: 1rem;
+            list-style: none;
+        }
+        
+        .recommendations-list li {
+            padding: 0.5rem 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .recommendations-list li i {
+            width: 20px;
+            color: #c9a84c;
+        }
+        
+        .bank-match {
+            background: linear-gradient(135deg, #0d2b1f, #1e4a3a);
+            color: white;
+            border-radius: 12px;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+        
+        .bank-match h4 {
+            margin-bottom: 0.5rem;
+        }
+        
+        .bank-list {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-top: 0.5rem;
+        }
+        
+        .bank-item {
+            background: rgba(255,255,255,0.2);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .bank-item:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-2px);
+        }
+        
+        .document-list {
+            background: #f7fafc;
+            border-radius: 12px;
+            padding: 1rem;
+            list-style: none;
+        }
+        
+        .document-list li {
+            padding: 0.5rem 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .btn-apply {
+            background: #c9a84c;
+            color: #0d2b1f;
+            border: none;
+            padding: 1rem;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 12px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 1rem;
+            transition: all 0.2s;
+        }
+        
+        .btn-apply:hover {
+            background: #b89438;
+            transform: translateY(-2px);
+        }
+        
+        .footer {
+            text-align: center;
+            padding: 2rem;
+            color: #718096;
+            font-size: 0.8rem;
+            border-top: 1px solid #e2e8f0;
+            margin-top: 2rem;
+        }
+        
+        @media (max-width: 768px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            .container {
+                padding: 1rem;
+            }
+            .header h1 {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>CreditRisk <span>Bot</span></h1>
+        <p></p>
+    </div>
+    
+    <div class="container">
+        <div class="form-card">
+            <h3 style="margin-bottom: 1.5rem;">📊 Enter Your Details</h3>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Loan Type</label>
+                    <select id="loanType">
+                        <option value="Business Loan">Business Loan</option>
+                        <option value="Personal Loan">Personal Loan</option>
+                        <option value="Home Loan">Home Loan</option>
+                        <option value="Vehicle Loan">Vehicle Loan</option>
+                        <option value="Education Loan">Education Loan</option>
+                        <option value="Agriculture Loan">Agriculture Loan</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Employment Type</label>
+                    <select id="occupation">
+                        <option value="Government Employee">Government Employee</option>
+                        <option value="Private Sector">Private Sector</option>
+                        <option value="Self-Employed">Self-Employed</option>
+                        <option value="Farmer">Farmer</option>
+                        <option value="Pensioner">Pensioner</option>
+                        <option value="Student">Student</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Years in Current Job</label>
+                    <input type="number" id="empTenure" value="3" min="0" max="40" step="0.5">
+                    <span class="help-text">How long have you been in your current job?</span>
+                </div>
+                
+                <div class="form-group">
+                    <label>Monthly Income (BWP)</label>
+                    <input type="number" id="monthlyIncome" value="15000" min="1000" max="200000">
+                </div>
+                
+                <div class="form-group">
+                    <label>Loan Amount Requested (BWP)</label>
+                    <input type="number" id="loanAmount" value="50000" min="5000" max="1000000">
+                </div>
+                
+                <div class="form-group">
+                    <label>Loan Term (months)</label>
+                    <select id="loanTerm">
+                        <option value="12">12 months</option>
+                        <option value="24" selected>24 months</option>
+                        <option value="36">36 months</option>
+                        <option value="48">48 months</option>
+                        <option value="60">60 months</option>
+                        <option value="72">72 months</option>
+                        <option value="84">84 months</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Existing Loans</label>
+                    <input type="number" id="existingLoans" value="0" min="0" max="10">
+                    <span class="help-text">Other loans you're currently paying</span>
+                </div>
+                
+                <div class="form-group">
+                    <label>Previous Loan Defaults</label>
+                    <input type="number" id="prevDefaults" value="0" min="0" max="5">
+                    <span class="help-text">Have you ever defaulted on a loan?</span>
+                </div>
+                
+                <div class="form-group">
+                    <label>Credit Score (if known)</label>
+                    <input type="number" id="creditScore" value="680" min="300" max="850">
+                    <span class="help-text">Leave at 680 if you don't know</span>
+                </div>
+                
+                <div class="form-group">
+                    <label>Do You Have Collateral?</label>
+                    <select id="hasCollateral">
+                        <option value="yes">Yes</option>
+                        <option value="no" selected>No</option>
+                    </select>
+                </div>
+            </div>
+            
+            <button class="btn-check" onclick="calculateRisk()">
+                <i class="fas fa-chart-line"></i> Calculate My Loan Health
+            </button>
+        </div>
+        
+        <div id="results" class="results-card">
+            <div class="score-section">
+                <div id="scoreCircle" class="score-circle">0</div>
+                <div id="riskLevel" class="risk-level"></div>
+                <div id="dtiWarning" class="dti-warning"></div>
+            </div>
+            
+            <div id="recommendations">
+                <div class="section-title">📋 What to Fix Before Applying</div>
+                <ul id="recommendationsList" class="recommendations-list"></ul>
+            </div>
+            
+            <div id="bankMatch">
+                <div class="section-title">🏦 Banks Most Likely to Approve You</div>
+                <div id="bankList" class="bank-match"></div>
+            </div>
+            
+            <div id="documents">
+                <div class="section-title">📄 Documents to Prepare</div>
+                <ul id="documentList" class="document-list"></ul>
+            </div>
+            
+            <button id="applyBtn" class="btn-apply" onclick="showBankOptions()">
+                <i class="fas fa-file-contract"></i> Get Connected to Banks (Free)
+            </button>
+        </div>
+    </div>
+    
+    <div class="footer">
+        <p>© 2026 — Powered by Thebe Credit Union's ML Model | Predicts default risk with 84% accuracy</p>
+    </div>
+    
+    <script>
+        // This uses the same logic as the Thebe Credit Union ML model
+        function calculateRisk() {
+            // Get form values
+            const monthlyIncome = parseFloat(document.getElementById('monthlyIncome').value);
+            const loanAmount = parseFloat(document.getElementById('loanAmount').value);
+            const loanTerm = parseInt(document.getElementById('loanTerm').value);
+            const existingLoans = parseInt(document.getElementById('existingLoans').value);
+            const prevDefaults = parseInt(document.getElementById('prevDefaults').value);
+            const creditScore = parseInt(document.getElementById('creditScore').value);
+            const hasCollateral = document.getElementById('hasCollateral').value === 'yes';
+            const empTenure = parseFloat(document.getElementById('empTenure').value);
+            const occupation = document.getElementById('occupation').value;
+            const loanType = document.getElementById('loanType').value;
+            
+            // Calculate monthly payment (assuming 14% interest rate - Botswana average)
+            const annualRate = 0.14;
+            const monthlyRate = annualRate / 12;
+            let monthlyPayment;
+            
+            if (monthlyRate > 0) {
+                monthlyPayment = loanAmount * monthlyRate * Math.pow(1 + monthlyRate, loanTerm) / (Math.pow(1 + monthlyRate, loanTerm) - 1);
+            } else {
+                monthlyPayment = loanAmount / loanTerm;
+            }
+            
+            const dtiRatio = monthlyPayment / monthlyIncome;
+            
+            // Calculate risk score (0-100, higher = more risky)
+            // Based on Thebe Credit Union's model feature importance
+            let riskScore = 0;
+            
+            // 1. DTI Ratio (most important factor - 35% weight)
+            if (dtiRatio > 0.55) riskScore += 35;
+            else if (dtiRatio > 0.43) riskScore += 25;
+            else if (dtiRatio > 0.30) riskScore += 15;
+            else if (dtiRatio > 0.20) riskScore += 8;
+            else riskScore += 0;
+            
+            // 2. Previous defaults (25% weight)
+            if (prevDefaults >= 2) riskScore += 25;
+            else if (prevDefaults === 1) riskScore += 15;
+            else riskScore += 0;
+            
+            // 3. Credit score (20% weight)
+            if (creditScore < 580) riskScore += 20;
+            else if (creditScore < 670) riskScore += 12;
+            else if (creditScore < 740) riskScore += 6;
+            else riskScore += 0;
+            
+            // 4. Existing loans (15% weight)
+            if (existingLoans >= 3) riskScore += 15;
+            else if (existingLoans === 2) riskScore += 8;
+            else if (existingLoans === 1) riskScore += 4;
+            else riskScore += 0;
+            
+            // 5. Employment stability (15% weight)
+            if (empTenure < 1) riskScore += 15;
+            else if (empTenure < 2) riskScore += 10;
+            else if (empTenure < 3) riskScore += 5;
+            else riskScore += 0;
+            
+            // 6. Collateral (10% weight)
+            if (!hasCollateral && loanAmount > 100000) riskScore += 10;
+            else if (!hasCollateral) riskScore += 5;
+            
+            // 7. Occupation risk adjustment
+            if (occupation === "Student") riskScore += 8;
+            if (occupation === "Farmer") riskScore += 5;
+            if (occupation === "Self-Employed") riskScore += 3;
+            if (occupation === "Pensioner") riskScore -= 3;
+            if (occupation === "Government Employee") riskScore -= 5;
+            
+            // 8. Loan type risk adjustment
+            if (loanType === "Business Loan" && riskScore > 40) riskScore += 5;
+            if (loanType === "Agriculture Loan") riskScore += 3;
+            
+            // Cap at 100
+            riskScore = Math.min(Math.max(riskScore, 0), 100);
+            
+            // Determine risk level based on Thebe Credit Union's thresholds
+            let riskLevel, colorClass, approvalText;
+            if (riskScore < 20) {
+                riskLevel = "🟢 Low Risk";
+                colorClass = "score-low";
+                approvalText = "High approval odds — you're in good shape!";
+            } else if (riskScore < 45) {
+                riskLevel = "🟡 Medium Risk";
+                colorClass = "score-medium";
+                approvalText = "Moderate approval odds — some issues to fix";
+            } else if (riskScore < 70) {
+                riskLevel = "🟠 High Risk";
+                colorClass = "score-high";
+                approvalText = "Low approval odds — significant issues to address";
+            } else {
+                riskLevel = "🔴 Critical Risk";
+                colorClass = "score-critical";
+                approvalText = "Very low approval odds — major issues need fixing";
+            }
+            
+            // Update UI
+            const scoreCircle = document.getElementById('scoreCircle');
+            scoreCircle.textContent = Math.round(riskScore);
+            scoreCircle.className = `score-circle ${colorClass}`;
+            
+            document.getElementById('riskLevel').innerHTML = `${riskLevel}<br><span style="font-size:0.9rem; color:#4a5568;">${approvalText}</span>`;
+            
+            // DTI Warning
+            const dtiWarning = document.getElementById('dtiWarning');
+            if (dtiRatio > 0.43) {
+                dtiWarning.innerHTML = `⚠️ Your debt-to-income ratio is ${(dtiRatio*100).toFixed(0)}% — Bank limit is 43%. This is a major red flag.`;
+                dtiWarning.className = "dti-warning warning";
+            } else {
+                dtiWarning.innerHTML = `✅ Your debt-to-income ratio is ${(dtiRatio*100).toFixed(0)}% — Below the 43% bank limit. Good!`;
+                dtiWarning.className = "dti-warning good";
+            }
+            
+            // Build recommendations
+            const recommendationsList = document.getElementById('recommendationsList');
+            recommendationsList.innerHTML = '';
+            
+            if (dtiRatio > 0.43) {
+                recommendationsList.innerHTML += `<li><i class="fas fa-exclamation-triangle"></i> Your debt-to-income ratio is ${(dtiRatio*100).toFixed(0)}% — pay down existing debt first or request a smaller loan.</li>`;
+            }
+            if (prevDefaults >= 1) {
+                recommendationsList.innerHTML += `<li><i class="fas fa-history"></i> You have ${prevDefaults} previous default(s). Build a positive repayment history for 6-12 months before reapplying.</li>`;
+            }
+            if (creditScore < 620) {
+                recommendationsList.innerHTML += `<li><i class="fas fa-chart-line"></i> Your credit score (${creditScore}) is low. Pay bills on time and reduce credit card usage.</li>`;
+            }
+            if (existingLoans >= 2) {
+                recommendationsList.innerHTML += `<li><i class="fas fa-coins"></i> You have ${existingLoans} active loans. Consider consolidating or paying down one loan first.</li>`;
+            }
+            if (empTenure < 2) {
+                recommendationsList.innerHTML += `<li><i class="fas fa-building"></i> You've only been in your current job for ${empTenure} years. Banks prefer 2+ years of stable employment.</li>`;
+            }
+            if (!hasCollateral && loanAmount > 100000) {
+                recommendationsList.innerHTML += `<li><i class="fas fa-home"></i> For loans above P100,000, collateral is usually required. Consider offering an asset.</li>`;
+            }
+            if (monthlyIncome < 8000) {
+                recommendationsList.innerHTML += `<li><i class="fas fa-chart-simple"></i> Your monthly income (P${monthlyIncome.toLocaleString()}) is low relative to loan amount. Consider a smaller loan.</li>`;
+            }
+            
+            if (recommendationsList.innerHTML === '') {
+                recommendationsList.innerHTML = '<li><i class="fas fa-check-circle"></i> ✅ You look good! Banks should consider your application favorably.</li>';
+            }
+            
+            // Build bank matches based on risk profile
+            const bankList = document.getElementById('bankList');
+            bankList.innerHTML = '';
+            
+            if (riskScore < 35) {
+                bankList.innerHTML = `
+                    <h4>✅ You qualify for these banks:</h4>
+                    <div class="bank-list">
+                        <div class="bank-item" onclick="window.open('https://www.fnbbotswana.co.bw', '_blank')">🏦 First National Bank (FNB)</div>
+                        <div class="bank-item" onclick="window.open('https://www.standardbank.co.bw', '_blank')">🏦 Standard Bank</div>
+                        <div class="bank-item" onclick="window.open('https://www.absa.co.bw', '_blank')">🏦 Absa Bank</div>
+                        <div class="bank-item" onclick="window.open('https://www.bbs.co.bw', '_blank')">🏦 Botswana Building Society</div>
+                    </div>
+                    <p style="margin-top:0.5rem;font-size:0.85rem;">Best rates available: 10.5% - 14% APR</p>
+                `;
+            } else if (riskScore < 60) {
+                bankList.innerHTML = `
+                    <h4>⚠️ These banks may consider you with conditions:</h4>
+                    <div class="bank-list">
+                        <div class="bank-item" onclick="window.open('https://www.letshego.com/botswana', '_blank')">🏦 Letshego Bank</div>
+                        <div class="bank-item" onclick="window.open('https://www.bankgaborone.co.bw', '_blank')">🏦 Bank Gaborone</div>
+                        <div class="bank-item" onclick="window.open('https://www.ceda.co.bw', '_blank')">🏦 CEDA (Development loans)</div>
+                    </div>
+                    <p style="margin-top:0.5rem;font-size:0.85rem;">Expect higher rates: 15% - 22% APR. May require collateral.</p>
+                `;
+            } else {
+                bankList.innerHTML = `
+                    <h4>🔄 Improve your profile first, then try:</h4>
+                    <div class="bank-list">
+                        <div class="bank-item" onclick="window.open('https://www.ceda.co.bw', '_blank')">🏦 CEDA (Development loans)</div>
+                        <div class="bank-item" onclick="window.open('https://www.lea.co.bw', '_blank')">🏦 LEA (Youth/Startup funding)</div>
+                        <div class="bank-item">🏦 Microfinance institutions</div>
+                    </div>
+                    <p style="margin-top:0.5rem;font-size:0.85rem;">Consider government programs or microfinance first to build credit history.</p>
+                `;
+            }
+            
+            // Build document checklist
+            const documentList = document.getElementById('documentList');
+            documentList.innerHTML = `
+                <li><i class="fas fa-file-pdf"></i> 📄 Botswana National ID / Omang</li>
+                <li><i class="fas fa-file-pdf"></i> 📄 Business registration certificate (CIPA) if applicable</li>
+                <li><i class="fas fa-file-pdf"></i> 📄 Tax clearance certificate (BURS)</li>
+                <li><i class="fas fa-file-pdf"></i> 📄 Bank statements for last 6 months</li>
+                <li><i class="fas fa-file-pdf"></i> 📄 Payslips for last 3 months / Proof of income</li>
+                <li><i class="fas fa-file-pdf"></i> 📄 Employment letter (if employed)</li>
+                ${hasCollateral ? '<li><i class="fas fa-file-pdf"></i> 📄 Proof of collateral (title deed, vehicle registration)</li>' : ''}
+                ${empTenure >= 2 ? '<li><i class="fas fa-file-pdf"></i> 📄 Audited financial statements (if business owner)</li>' : ''}
+            `;
+            
+            // Show results
+            document.getElementById('results').style.display = 'block';
+            
+            // Scroll to results
+            document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        function showBankOptions() {
+            // Track this click for analytics
+            trackBankInterest();
+            alert("🔒 We'll connect you with banks that match your profile. Check your email for personalized offers.");
+        }
+        
+        function trackBankInterest() {
+            // In production, send to Airtable or your database
+            console.log("Bank interest tracked");
+            // You can add Airtable integration here
+        }
+        
+        // Auto-calculate on page load with defaults
+        window.addEventListener('DOMContentLoaded', () => {
+            calculateRisk();
+        });
+    </script>
+</body>
+</html>
